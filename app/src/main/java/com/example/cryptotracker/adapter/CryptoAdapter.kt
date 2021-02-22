@@ -3,11 +3,11 @@ package com.example.cryptotracker.adapter
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Color
 import android.os.Build
-import android.preference.PreferenceManager
-import android.provider.Settings.Global.getString
 import android.text.InputType
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -17,21 +17,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.cryptotracker.MainActivity
 import com.example.cryptotracker.R
 import com.example.cryptotracker.model.CryptoModel
-import com.example.cryptotracker.model.Item
-import com.example.cryptotracker.service.DolarService
+import com.example.cryptotracker.model.CryptoType
+import com.example.cryptotracker.model.Data
 import com.example.cryptotracker.utils.Constants
-import com.example.cryptotracker.utils.Constants.dolarApiUrl
+import com.example.cryptotracker.utils.getTwoDigitsDouble
 import com.example.cryptotracker.utils.inflate
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.crypto_layout.view.*
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.NumberFormat
 import java.util.*
+import kotlin.reflect.full.declaredMemberProperties
 
 
 /**
@@ -39,8 +35,7 @@ import java.util.*
  */
 class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter.CryptoViewHolder>() {
     private var cryptoCoins: List<CryptoModel> = Collections.emptyList()
-    private var dollarPrice: Double = 0.0
-    private var cryptoQuantity: Double = 0.0
+    private var cryptoQuantity: Float = 0.0f
     private var investment: Double = 0.0
     private var actualInvestment: Double = 0.0
     private val activity = activity
@@ -59,8 +54,6 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
          *  coin - A single CryptoModel object from list
          */
         val coin = cryptoCoins[position]
-        getDollarPrice()
-        val dolar = dollarPrice
         /**
          * get CryptoModel data and bind them to corresponding
          * viewholder widgets(text view, imageview etc)
@@ -68,20 +61,28 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
         holder.apply {
             coinName.text = coin.name
             coinSymbol.text = coin.symbol
-            coinPrice.text = BigDecimal(coin.quote.usd.price.toDouble()).setScale(2, RoundingMode.HALF_EVEN).toString()
-            oneHourChange.text = BigDecimal(coin.quote.usd.percent_change_1h.toDouble()).setScale(2, RoundingMode.HALF_EVEN).toString()  + "%"
-            twentyFourHourChange.text = BigDecimal(coin.quote.usd.percent_change_24h.toDouble()).setScale(2, RoundingMode.HALF_EVEN).toString()  + "%"
-            sevenDayChange.text = BigDecimal(coin.quote.usd.percent_change_7d.toDouble()).setScale(2, RoundingMode.HALF_EVEN).toString()  + "%"
+            coinPrice.text = getTwoDigitsDouble(coin.quote.usd.price)
+            oneHourChange.text = "${getTwoDigitsDouble(coin.quote.usd.percent_change_1h)}%"
+            twentyFourHourChange.text = "${getTwoDigitsDouble(coin.quote.usd.percent_change_24h)}%"
+            sevenDayChange.text = "${getTwoDigitsDouble(coin.quote.usd.percent_change_7d)}%"
 
-            val sharedPref =  activity.getPreferences(Context.MODE_PRIVATE) ?: return
+            val sharedPref =  activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE) ?: return
             investment = Double.fromBits(sharedPref.getLong("investment_${coin.name}", 0))
-            cryptoQuantity =  Double.fromBits(sharedPref.getLong("quantity_${coin.name}", 0))
-            actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+            Log.d("COIN NAME", "quantity_${coin.name}")
+            cryptoQuantity =  sharedPref.getFloat("quantity_${coin.name}", 0f)
+            Log.d("CRYPTO CUANTITY", cryptoQuantity.toString())
+            Log.d("COIN PRICE", coin.quote.usd.price)
+            actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * activity.dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
             holder.actual.text = actualInvestment.toString()
             holder.initial.text = investment.toString()
-            val color = if (actualInvestment > investment)  "#32CD32" else "#ff0000"
-            holder.actual.setTextColor(Color.parseColor(color))
-            holder.dollarSign.setTextColor(Color.parseColor(color))
+            if (actualInvestment > investment) {
+                holder.actual.setTextColor(Color.parseColor("#32CD32"))
+                holder.dollarSign.setTextColor(Color.parseColor("#32CD32"))
+            } else if (actualInvestment < investment) {
+                holder.actual.setTextColor(Color.parseColor("#ff0000"))
+                holder.dollarSign.setTextColor(Color.parseColor("#ff0000"))
+            }
+
 
             /**
              *  Picasso for async image loading
@@ -125,17 +126,23 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
             builder.setPositiveButton("OK") { dialog, which ->
                 run {
                     investment = investmentInput.text.toString().toDouble()
-                    cryptoQuantity = quantityInput.text.toString().toDouble()
-                    actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                    cryptoQuantity = quantityInput.text.toString().toFloat()
+                    actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * activity.dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
                     holder.initial.text = investment.toString()
                     holder.actual.text = actualInvestment.toString()
-                    val color = if (actualInvestment > investment)  "#32CD32" else "#ff0000"
-                    holder.actual.setTextColor(Color.parseColor(color))
-                    holder.dollarSign.setTextColor(Color.parseColor(color))
-                    val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                    if (actualInvestment > investment) {
+                        holder.actual.setTextColor(Color.parseColor("#32CD32"))
+                        holder.dollarSign.setTextColor(Color.parseColor("#32CD32"))
+                    } else if (actualInvestment < investment) {
+                        holder.actual.setTextColor(Color.parseColor("#ff0000"))
+                        holder.dollarSign.setTextColor(Color.parseColor("#ff0000"))
+                    }
+                    val sharedPref = activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
                     with (sharedPref.edit()) {
                         putLong("investment_${coin.name}", investment.toRawBits())
-                        putLong("quantity_${coin.name}", cryptoQuantity.toRawBits())
+                        Log.d("COIN NAME", "quantity_${coin.name}")
+                        putFloat("quantity_${coin.name}", cryptoQuantity)
+                        Log.d("CRYPTO CUANTITY", cryptoQuantity.toString())
                         apply()
                     }
                 }
@@ -162,43 +169,10 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
         var dollarSign = view.dollarSign3
     }
 
-    fun updateData(cryptoCoins: List<CryptoModel>) {
-        this.cryptoCoins = cryptoCoins
+    fun updateData(cryptoCoins: Data) {
+        val properties = CryptoType.values().map { cryptoType -> Data::class.declaredMemberProperties.firstOrNull { it.name == cryptoType.name.toLowerCase(Locale.ROOT) } }
+        this.cryptoCoins = properties.mapNotNull { it?.get(cryptoCoins) as? CryptoModel }
         notifyDataSetChanged()
-    }
-
-    fun getDollarPrice() {
-        val builder: OkHttpClient.Builder? = OkHttpClient().newBuilder()
-        val interceptor = HttpLoggingInterceptor()
-        interceptor.level = HttpLoggingInterceptor.Level.BASIC
-        builder!!.addInterceptor(interceptor)
-        val client = builder.build()
-        val retrofit = Retrofit.Builder()
-                .baseUrl(dolarApiUrl)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-        val service = retrofit.create(DolarService::class.java)
-
-        service.getDollarPrice("valoresprincipales").enqueue(object : retrofit2.Callback<List<Item>> {
-            override fun onResponse(
-                    call: retrofit2.Call<List<Item>>,
-                    response: retrofit2.Response<List<Item>>
-            ) {
-                println("body: " + response.body())
-                val turista = response.body()?.get(4)
-                if (turista != null) {
-                    val format: NumberFormat = NumberFormat.getInstance(Locale.FRANCE)
-                    dollarPrice = format.parse(turista.casa.venta).toDouble()
-                    println("PRECIO: $dollarPrice")
-                }
-            }
-
-            override fun onFailure(call: retrofit2.Call<List<Item>>, t: Throwable) {
-                println("Failed $t")
-            }
-
-        })
     }
 }
 

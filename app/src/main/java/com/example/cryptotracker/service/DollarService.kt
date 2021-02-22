@@ -6,7 +6,7 @@ import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface DolarService {
+interface DollarService {
     @GET("api.php")
     fun getDollarPrice(@Query("type") type: String) : Call<List<Item>>
 }

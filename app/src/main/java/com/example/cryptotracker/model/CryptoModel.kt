@@ -21,5 +21,12 @@ data class Usd(
 )
 
 data class Body(
-    val data: List<CryptoModel>
+    val data: Data
+)
+
+data class Data(
+        @SerializedName("BTC") val btc: CryptoModel,
+        @SerializedName("ETH") val eth: CryptoModel,
+        @SerializedName("EOS") val eos: CryptoModel,
+        @SerializedName("TRX") val trx: CryptoModel
 )

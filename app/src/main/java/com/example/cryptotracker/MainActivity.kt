@@ -1,19 +1,21 @@
 package com.example.cryptotracker
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptotracker.adapter.CryptoAdapter
 import com.example.cryptotracker.model.Body
+import com.example.cryptotracker.model.Item
 import com.example.cryptotracker.service.CryptoCurrencyService
+import com.example.cryptotracker.service.DollarService
 import com.example.cryptotracker.utils.Constants
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.NumberFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -21,6 +23,7 @@ class MainActivity : AppCompatActivity() {
      * Declare variables
      */
     private lateinit var adapter: CryptoAdapter
+    var dollarPrice = 0.0
 
     /**
      * holds the REST endpoint to query,
@@ -39,8 +42,7 @@ class MainActivity : AppCompatActivity() {
         )
         adapter = CryptoAdapter(this)
         cryptoRecyclerView.adapter = adapter
-        adapter.getDollarPrice()
-        getCoins()
+        getDollarPrice()
     }
 
     fun getCoins() {
@@ -60,7 +62,7 @@ class MainActivity : AppCompatActivity() {
             .build()
         val service = retrofit.create(CryptoCurrencyService::class.java)
 
-        service.getCryptoCurrency(10, "8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<Body> {
+        service.getCryptoCurrency("btc,eth,eos,trx","8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<Body> {
             override fun onResponse(
                     call: retrofit2.Call<Body>,
                     response: retrofit2.Response<Body>
@@ -72,6 +74,41 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: retrofit2.Call<Body>, t: Throwable) {
+                println("Failed $t")
+            }
+
+        })
+    }
+
+    fun getDollarPrice() {
+        val builder: OkHttpClient.Builder? = OkHttpClient().newBuilder()
+        val interceptor = HttpLoggingInterceptor()
+        interceptor.level = HttpLoggingInterceptor.Level.BASIC
+        builder!!.addInterceptor(interceptor)
+        val client = builder.build()
+        val retrofit = Retrofit.Builder()
+                .baseUrl(Constants.dolarApiUrl)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        val service = retrofit.create(DollarService::class.java)
+
+        service.getDollarPrice("valoresprincipales").enqueue(object : retrofit2.Callback<List<Item>> {
+            override fun onResponse(
+                    call: retrofit2.Call<List<Item>>,
+                    response: retrofit2.Response<List<Item>>
+            ) {
+                println("body: " + response.body())
+                val turista = response.body()?.get(4)
+                if (turista != null) {
+                    val format: NumberFormat = NumberFormat.getInstance(Locale.FRANCE)
+                    dollarPrice = format.parse(turista.casa.venta).toDouble()
+                    println("PRECIO: $dollarPrice")
+                    getCoins()
+                }
+            }
+
+            override fun onFailure(call: retrofit2.Call<List<Item>>, t: Throwable) {
                 println("Failed $t")
             }
 
