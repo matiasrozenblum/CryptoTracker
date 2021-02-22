@@ -1,7 +1,9 @@
 package com.example.cryptotracker
 
+import android.icu.text.Normalizer.NO
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptotracker.adapter.CryptoAdapter
 import com.example.cryptotracker.model.Body
@@ -33,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private val apiUrl = Constants.apiUrl
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         cryptoRecyclerView.layoutManager = LinearLayoutManager(
