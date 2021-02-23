@@ -1,6 +1,5 @@
 package com.example.cryptotracker
 
-import android.icu.text.Normalizer.NO
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -10,29 +9,14 @@ import com.example.cryptotracker.model.Body
 import com.example.cryptotracker.model.Item
 import com.example.cryptotracker.service.CryptoCurrencyService
 import com.example.cryptotracker.service.DollarService
-import com.example.cryptotracker.utils.Constants
 import kotlinx.android.synthetic.main.activity_main.*
-import okhttp3.*
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.text.NumberFormat
 import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
-    /**
-     * Declare variables
-     */
     private lateinit var adapter: CryptoAdapter
     var dollarPrice = 0.0
-
-    /**
-     * holds the REST endpoint to query,
-     * with the “limit=10” parameter passed.
-     * This will list the top 10 coins.
-     */
-    private val apiUrl = Constants.apiUrl
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -53,19 +37,8 @@ class MainActivity : AppCompatActivity() {
          *  enqueue ensures that this call does not occur on the Main UI thread,
          *  network transactions should be done off the Main UI Thread
          */
-        var builder: OkHttpClient.Builder? = OkHttpClient().newBuilder()
-        val interceptor = HttpLoggingInterceptor()
-        interceptor.level = HttpLoggingInterceptor.Level.BASIC
-        builder!!.addInterceptor(interceptor)
-        val client = builder.build()
-        val retrofit = Retrofit.Builder()
-            .baseUrl(apiUrl)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        val service = retrofit.create(CryptoCurrencyService::class.java)
-
-        service.getCryptoCurrency("btc,eth,eos,trx","8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<Body> {
+        val cryptoService = CryptoCurrencyService.create()
+        cryptoService.getCryptoCurrency("btc,eth,eos,trx","8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<Body> {
             override fun onResponse(
                     call: retrofit2.Call<Body>,
                     response: retrofit2.Response<Body>
@@ -83,29 +56,18 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun getDollarPrice() {
-        val builder: OkHttpClient.Builder? = OkHttpClient().newBuilder()
-        val interceptor = HttpLoggingInterceptor()
-        interceptor.level = HttpLoggingInterceptor.Level.BASIC
-        builder!!.addInterceptor(interceptor)
-        val client = builder.build()
-        val retrofit = Retrofit.Builder()
-                .baseUrl(Constants.dolarApiUrl)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-        val service = retrofit.create(DollarService::class.java)
-
-        service.getDollarPrice("valoresprincipales").enqueue(object : retrofit2.Callback<List<Item>> {
+    private fun getDollarPrice() {
+        val dollarService = DollarService.create()
+        dollarService.getDollarPrice("valoresprincipales").enqueue(object : retrofit2.Callback<List<Item>> {
             override fun onResponse(
                     call: retrofit2.Call<List<Item>>,
                     response: retrofit2.Response<List<Item>>
             ) {
                 println("body: " + response.body())
-                val turista = response.body()?.get(4)
+                val turista = response.body()?.get(6)
                 if (turista != null) {
                     val format: NumberFormat = NumberFormat.getInstance(Locale.FRANCE)
-                    dollarPrice = format.parse(turista.casa.venta).toDouble()
+                    dollarPrice = format.parse(turista.casa.venta)!!.toDouble()
                     println("PRECIO: $dollarPrice")
                     getCoins()
                 }

@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cryptotracker.MainActivity
@@ -33,12 +34,11 @@ import kotlin.reflect.full.declaredMemberProperties
 /**
  * Created by CharlesAE on 2/25/18.
  */
-class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter.CryptoViewHolder>() {
+class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter.CryptoViewHolder>() {
     private var cryptoCoins: List<CryptoModel> = Collections.emptyList()
     private var cryptoQuantity: Float = 0.0f
     private var investment: Double = 0.0
     private var actualInvestment: Double = 0.0
-    private val activity = activity
 
     /**
      *  lets the Adapter know how many items to display
@@ -50,14 +50,8 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @SuppressLint("ResourceAsColor")
     override fun onBindViewHolder(holder: CryptoViewHolder, position: Int) {
-        /**
-         *  coin - A single CryptoModel object from list
-         */
         val coin = cryptoCoins[position]
-        /**
-         * get CryptoModel data and bind them to corresponding
-         * viewholder widgets(text view, imageview etc)
-         */
+
         holder.apply {
             coinName.text = coin.name
             coinSymbol.text = coin.symbol
@@ -68,45 +62,20 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
 
             val sharedPref =  activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE) ?: return
             investment = Double.fromBits(sharedPref.getLong("investment_${coin.name}", 0))
-            Log.d("COIN NAME", "quantity_${coin.name}")
             cryptoQuantity =  sharedPref.getFloat("quantity_${coin.name}", 0f)
-            Log.d("CRYPTO CUANTITY", cryptoQuantity.toString())
-            Log.d("COIN PRICE", coin.quote.usd.price)
             actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * activity.dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
             holder.actual.text = actualInvestment.toString()
             holder.initial.text = investment.toString()
-            if (actualInvestment > investment) {
-                holder.actual.setTextColor(Color.parseColor("#32CD32"))
-                holder.dollarSign.setTextColor(Color.parseColor("#32CD32"))
-            } else if (actualInvestment < investment) {
-                holder.actual.setTextColor(Color.parseColor("#ff0000"))
-                holder.dollarSign.setTextColor(Color.parseColor("#ff0000"))
-            }
 
+            applyWinningsColor(holder)
 
-            /**
-             *  Picasso for async image loading
-             */
             Picasso.with(itemView.context).load(Constants.imageUrl + coin.symbol.toLowerCase() + ".png").into(coinIcon)
 
-            /**
-             *  Set color of percentage change textview to reflect
-             *  if the percentage change was negative or positive
-             */
-            oneHourChange.setTextColor(Color.parseColor(when {
-                coin.quote.usd.percent_change_1h.contains("-") -> "#ff0000"
-                else -> "#32CD32"
-            }))
+            applyColor(oneHourChange, coin.quote.usd.percent_change_1h)
 
-            twentyFourHourChange.setTextColor(Color.parseColor(when {
-                coin.quote.usd.percent_change_24h.contains("-") -> "#ff0000"
-                else -> "#32CD32"
-            }))
+            applyColor(twentyFourHourChange, coin.quote.usd.percent_change_24h)
 
-            sevenDayChange.setTextColor(Color.parseColor(when {
-                coin.quote.usd.percent_change_7d.contains("-") -> "#ff0000"
-                else -> "#32CD32"
-            }))
+            applyColor(sevenDayChange, coin.quote.usd.percent_change_7d)
         }
         holder.itemView.setOnClickListener {
             val builder: AlertDialog.Builder = AlertDialog.Builder(it.context)
@@ -130,19 +99,11 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
                     actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * activity.dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
                     holder.initial.text = investment.toString()
                     holder.actual.text = actualInvestment.toString()
-                    if (actualInvestment > investment) {
-                        holder.actual.setTextColor(Color.parseColor("#32CD32"))
-                        holder.dollarSign.setTextColor(Color.parseColor("#32CD32"))
-                    } else if (actualInvestment < investment) {
-                        holder.actual.setTextColor(Color.parseColor("#ff0000"))
-                        holder.dollarSign.setTextColor(Color.parseColor("#ff0000"))
-                    }
+                    applyWinningsColor(holder)
                     val sharedPref = activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
                     with (sharedPref.edit()) {
                         putLong("investment_${coin.name}", investment.toRawBits())
-                        Log.d("COIN NAME", "quantity_${coin.name}")
                         putFloat("quantity_${coin.name}", cryptoQuantity)
-                        Log.d("CRYPTO CUANTITY", cryptoQuantity.toString())
                         apply()
                     }
                 }
@@ -154,9 +115,6 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
     }
 
     class CryptoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        /**
-         * ViewHolder items (textviews, imageviews) from the crypto_layout.xml
-         */
         var coinName = view.coinName
         var coinSymbol = view.coinSymbol
         var coinPrice = view.priceUsdText
@@ -173,6 +131,23 @@ class CryptoAdapter(activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter
         val properties = CryptoType.values().map { cryptoType -> Data::class.declaredMemberProperties.firstOrNull { it.name == cryptoType.name.toLowerCase(Locale.ROOT) } }
         this.cryptoCoins = properties.mapNotNull { it?.get(cryptoCoins) as? CryptoModel }
         notifyDataSetChanged()
+    }
+
+    private fun applyColor(textView: TextView, text: String) {
+        textView.setTextColor(activity.resources.getColor(when {
+            text.contains("-") -> R.color.red
+            else -> R.color.green
+        }))
+    }
+
+    private fun applyWinningsColor(holder: CryptoViewHolder) {
+        if (actualInvestment > investment) {
+            holder.actual.setTextColor(activity.resources.getColor(R.color.green))
+            holder.dollarSign.setTextColor(activity.resources.getColor(R.color.green))
+        } else if (actualInvestment < investment) {
+            holder.actual.setTextColor(activity.resources.getColor(R.color.red))
+            holder.dollarSign.setTextColor(activity.resources.getColor(R.color.red))
+        }
     }
 }
 
