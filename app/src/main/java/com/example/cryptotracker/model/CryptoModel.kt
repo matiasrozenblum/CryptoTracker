@@ -30,3 +30,7 @@ data class Data(
         @SerializedName("EOS") val eos: CryptoModel,
         @SerializedName("TRX") val trx: CryptoModel
 )
+
+data class DataList(
+        val data: List<CryptoModel>
+)
