@@ -1,5 +1,6 @@
 package com.example.cryptotracker
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -7,7 +8,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptotracker.adapter.CryptoAdapter
 import com.example.cryptotracker.model.Body
-import com.example.cryptotracker.model.DataList
 import com.example.cryptotracker.model.Item
 import com.example.cryptotracker.service.CryptoCurrencyService
 import com.example.cryptotracker.service.DollarService
@@ -19,6 +19,7 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
     private lateinit var adapter: CryptoAdapter
     var dollarPrice = 0.0
+    var coins = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -31,6 +32,8 @@ class MainActivity : AppCompatActivity() {
         )
         adapter = CryptoAdapter(this)
         cryptoRecyclerView.adapter = adapter
+        val sharedPref =  this.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE) ?: return
+        coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("btc", "eth")) as MutableSet<String>
         getDollarPrice()
 
         fab.setOnClickListener {
@@ -41,7 +44,8 @@ class MainActivity : AppCompatActivity() {
 
     fun getCoins() {
         val cryptoService = CryptoCurrencyService.create()
-        cryptoService.getCryptoCurrency("btc,eth,eos,trx", "8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<Body> {
+        val coinString = coins.joinToString(separator = ",") { it }
+        cryptoService.getCryptoCurrency(coinString, "8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<Body> {
             override fun onResponse(
                     call: retrofit2.Call<Body>,
                     response: retrofit2.Response<Body>
@@ -78,5 +82,12 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        val refresh = Intent(this, MainActivity::class.java)
+        startActivity(refresh);
+        finish()
     }
 }

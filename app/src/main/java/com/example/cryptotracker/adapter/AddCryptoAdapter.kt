@@ -3,11 +3,8 @@ package com.example.cryptotracker.adapter
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
-import android.content.res.Resources
-import android.graphics.Color
 import android.os.Build
 import android.text.InputType
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -19,8 +16,6 @@ import com.example.cryptotracker.AddCryptoActivity
 import com.example.cryptotracker.MainActivity
 import com.example.cryptotracker.R
 import com.example.cryptotracker.model.CryptoModel
-import com.example.cryptotracker.model.CryptoType
-import com.example.cryptotracker.model.Data
 import com.example.cryptotracker.utils.Constants
 import com.example.cryptotracker.utils.getTwoDigitsDouble
 import com.example.cryptotracker.utils.inflate
@@ -29,11 +24,13 @@ import kotlinx.android.synthetic.main.crypto_layout.view.*
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
-import kotlin.reflect.full.declaredMemberProperties
 
 
 class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.Adapter<AddCryptoAdapter.CryptoViewHolder>() {
     private var cryptoCoins: List<CryptoModel> = Collections.emptyList()
+    private var cryptoQuantity: Float = 0.0f
+    private var investment: Double = 0.0
+    private var actualInvestment: Double = 0.0
 
     override fun getItemCount(): Int = cryptoCoins.size
 
@@ -75,9 +72,25 @@ class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.A
             lila1.addView(investmentInput)
             lila1.addView(quantityInput)
             builder.setView(lila1)
-            builder.setPositiveButton("OK") { dialog, which -> dialog.cancel() }
+            builder.setPositiveButton("OK") { _, _ ->
+                run {
+                    investment = investmentInput.text.toString().toDouble()
+                    cryptoQuantity = quantityInput.text.toString().toFloat()
+                    actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * MainActivity().dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                    val sharedPref = activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
+                    with (sharedPref.edit()) {
+                        putLong("investment_${coin.name}", investment.toRawBits())
+                        putFloat("quantity_${coin.name}", cryptoQuantity)
+                        val coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("btc", "eth")) as MutableSet<String>
+                        coins.add(coin.symbol)
+                        putStringSet("crypto_coins", coins)
+                        apply()
+                    }
+                    activity.finish()
+                }
+            }
 
-            builder.setNegativeButton("Cancel") { dialog, which -> dialog.cancel() }
+            builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
             builder.show()
         }
     }
