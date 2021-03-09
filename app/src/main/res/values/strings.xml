@@ -12,4 +12,5 @@
     <string name="actualText">Actual:</string>
     <string name="actual">0.00</string>
     <string name="price_string" formatted="true">%s%%</string>
+    <string name="search">Search</string>
 </resources>
