@@ -108,7 +108,7 @@ class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.A
                     investment = investmentInput.text.toString().toDouble()
                     cryptoQuantity = quantityInput.text.toString().toFloat()
                     actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * MainActivity().dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-                    val sharedPref = activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
+                    val sharedPref = activity.applicationContext.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
                     with (sharedPref.edit()) {
                         putLong("investment_${coin.name}", investment.toRawBits())
                         putFloat("quantity_${coin.name}", cryptoQuantity)

@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.content.edit
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cryptotracker.MainActivity
 import com.example.cryptotracker.R
@@ -100,6 +101,32 @@ class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<C
             builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
             builder.show()
         }
+
+        holder.itemView.setOnLongClickListener {
+            val builder: AlertDialog.Builder = AlertDialog.Builder(it.context)
+            builder.setTitle("¿Borrar cripto?")
+            val lila1 = LinearLayout(it.context)
+            lila1.orientation = LinearLayout.VERTICAL
+            builder.setView(lila1)
+            builder.setPositiveButton("OK") { _, _ ->
+                run {
+                    val sharedPref = activity.applicationContext.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
+                    val coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("btc", "eth")) as MutableSet<String>
+                    coins.remove(coin.symbol)
+                    sharedPref.edit {
+                        remove("crypto_coins")
+                    }
+                    sharedPref.edit {
+                        putStringSet("crypto_coins", coins)
+                    }
+                    activity.recreate()
+                }
+            }
+
+            builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
+            builder.show()
+            true
+        }
     }
 
     class CryptoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -116,7 +143,11 @@ class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<C
     }
 
     fun updateData(cryptoCoins: Map<String,CryptoModel>) {
-        this.cryptoCoins = cryptoCoins.mapNotNull { it.value }
+        updateData(cryptoCoins.mapNotNull { it.value })
+    }
+
+    private fun updateData(cryptoCoins: List<CryptoModel>) {
+        this.cryptoCoins = cryptoCoins
         notifyDataSetChanged()
     }
 

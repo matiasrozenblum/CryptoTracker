@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         )
         adapter = CryptoAdapter(this)
         cryptoRecyclerView.adapter = adapter
-        val sharedPref =  this.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE) ?: return
+        val sharedPref =  this.applicationContext.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE) ?: return
         coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("btc", "eth")) as MutableSet<String>
         getDollarPrice()
 
