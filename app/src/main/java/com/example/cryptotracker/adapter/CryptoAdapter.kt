@@ -125,7 +125,7 @@ class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<C
             builder.setPositiveButton("OK") { _, _ ->
                 run {
                     val sharedPref = activity.applicationContext.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
-                    val coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("btc", "eth")) as MutableSet<String>
+                    val coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("BTC", "ETH")) as MutableSet<String>
                     coins.remove(coin.symbol)
                     sharedPref.edit {
                         remove("crypto_coins")

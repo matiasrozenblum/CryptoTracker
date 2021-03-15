@@ -112,7 +112,7 @@ class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.A
                     with (sharedPref.edit()) {
                         putLong("investment_${coin.name}", investment.toRawBits())
                         putFloat("quantity_${coin.name}", cryptoQuantity)
-                        val coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("btc", "eth")) as MutableSet<String>
+                        val coins = sharedPref.getStringSet("crypto_coins", mutableSetOf("BTC", "ETH")) as MutableSet<String>
                         coins.add(coin.symbol)
                         putStringSet("crypto_coins", coins)
                         apply()
