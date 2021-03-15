@@ -3,8 +3,17 @@ package com.example.cryptotracker
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.SearchView
+import android.widget.Switch
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.view.menu.ActionMenuItemView
+import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.edit
+import androidx.core.view.MenuItemCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptotracker.adapter.CryptoAdapter
 import com.example.cryptotracker.model.Body
@@ -40,6 +49,28 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AddCryptoActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        val checkable: MenuItem = menu.findItem(R.id.currency)
+        val switch = MenuItemCompat.getActionView(checkable) as Switch
+        val sharedPref =  this.applicationContext.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
+        switch.isChecked = sharedPref.getBoolean("currency", false)
+        switch.text = if(switch.isChecked) "ARS" else "USD"
+        switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            sharedPref.edit {
+                putBoolean("currency", isChecked)
+                apply()
+            }
+            finish()
+            overridePendingTransition(0, 0)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+            true
+        }
+        return super.onPrepareOptionsMenu(menu)
     }
 
     fun getCoins() {

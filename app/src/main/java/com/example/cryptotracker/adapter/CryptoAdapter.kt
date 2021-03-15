@@ -52,9 +52,16 @@ class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<C
             val sharedPref =  activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE) ?: return
             investment = Double.fromBits(sharedPref.getLong("investment_${coin.name}", 0))
             cryptoQuantity =  sharedPref.getFloat("quantity_${coin.name}", 0f)
-            actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * activity.dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+            var price = cryptoQuantity * coin.quote.usd.price.toDouble()
+            val currencyMode = sharedPref.getBoolean("currency", false)
+            if (currencyMode) {
+                price *= activity.dollarPrice
+            } else {
+                investment /= activity.dollarPrice
+            }
+            actualInvestment = BigDecimal(price).setScale(2, RoundingMode.HALF_EVEN).toDouble()
             holder.actual.text = actualInvestment.toString()
-            holder.initial.text = investment.toString()
+            holder.initial.text = BigDecimal(investment).setScale(2, RoundingMode.HALF_EVEN).toDouble().toString()
 
             applyWinningsColor(holder)
 
@@ -85,11 +92,18 @@ class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<C
                 run {
                     investment = investmentInput.text.toString().toDouble()
                     cryptoQuantity = quantityInput.text.toString().toFloat()
-                    actualInvestment = BigDecimal(cryptoQuantity * coin.quote.usd.price.toDouble() * activity.dollarPrice).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-                    holder.initial.text = investment.toString()
+                    val sharedPref = activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
+                    var price = cryptoQuantity * coin.quote.usd.price.toDouble()
+                    val currencyMode = sharedPref.getBoolean("currency", false)
+                    if (currencyMode) {
+                        price *= activity.dollarPrice
+                    } else {
+                        investment /= activity.dollarPrice
+                    }
+                    actualInvestment = BigDecimal(price).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+                    holder.initial.text = BigDecimal(investment).setScale(2, RoundingMode.HALF_EVEN).toDouble().toString()
                     holder.actual.text = actualInvestment.toString()
                     applyWinningsColor(holder)
-                    val sharedPref = activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
                     with (sharedPref.edit()) {
                         putLong("investment_${coin.name}", investment.toRawBits())
                         putFloat("quantity_${coin.name}", cryptoQuantity)
