@@ -15,7 +15,7 @@ interface CryptoCurrencyService {
     fun getCryptoCurrency(@Query("symbol") symbol: String, @Header("X-CMC_PRO_API_KEY") header: String) :Call<Body>
 
     @GET("cryptocurrency/listings/latest")
-    fun getCryptoCurrencies(@Header("X-CMC_PRO_API_KEY") header: String) :Call<DataList>
+    fun getCryptoCurrencies(@Query("limit") limit: Int, @Header("X-CMC_PRO_API_KEY") header: String) :Call<DataList>
 
     companion object Factory {
 

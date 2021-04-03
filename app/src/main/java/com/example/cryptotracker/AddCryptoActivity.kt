@@ -51,7 +51,7 @@ class AddCryptoActivity : AppCompatActivity() {
 
     private fun getAllCoins() {
         val cryptoService = CryptoCurrencyService.create()
-        cryptoService.getCryptoCurrencies("8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<DataList> {
+        cryptoService.getCryptoCurrencies(5000, "8f6819ab-b836-43e6-8635-c10ca600265e").enqueue(object : retrofit2.Callback<DataList> {
             override fun onResponse(
                     call: retrofit2.Call<DataList>,
                     response: retrofit2.Response<DataList>

@@ -79,13 +79,26 @@ class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<C
 
             val lila1 = LinearLayout(it.context)
             lila1.orientation = LinearLayout.VERTICAL
+            val investmentTextView = TextView(it.context)
+            val quantityTextView = TextView(it.context)
+            investmentTextView.text = activity.getString(R.string.investmentTV)
+            quantityTextView.text = activity.getString(R.string.quantityTV)
             val investmentInput = EditText(it.context)
             val quantityInput = EditText(it.context)
+            val sharedPref =  activity.getSharedPreferences("crypto_tracker", Context.MODE_PRIVATE)
+            investment = Double.fromBits(sharedPref.getLong("investment_${coin.name}", 0))
+            cryptoQuantity =  sharedPref.getFloat("quantity_${coin.name}", 0f)
             investmentInput.hint = "Ingrese monto invertido"
             quantityInput.hint = "Ingrese cantidad de cripto"
+            if (investment > 0.0) {
+                investmentInput.setText(investment.toString())
+                quantityInput.setText(cryptoQuantity.toString())
+            }
             investmentInput.inputType = InputType.TYPE_CLASS_NUMBER.or(InputType.TYPE_NUMBER_FLAG_DECIMAL)
             quantityInput.inputType = InputType.TYPE_CLASS_NUMBER.or(InputType.TYPE_NUMBER_FLAG_DECIMAL)
+            lila1.addView(investmentTextView)
             lila1.addView(investmentInput)
+            lila1.addView(quantityTextView)
             lila1.addView(quantityInput)
             builder.setView(lila1)
             builder.setPositiveButton("OK") { _, _ ->
