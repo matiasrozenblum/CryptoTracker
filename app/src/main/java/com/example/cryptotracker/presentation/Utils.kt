@@ -1,4 +1,4 @@
-package com.example.cryptotracker.utils
+package com.example.cryptotracker.presentation
 
 import android.view.LayoutInflater
 import android.view.View

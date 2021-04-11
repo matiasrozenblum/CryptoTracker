@@ -1,4 +1,4 @@
-package com.example.cryptotracker.adapter
+package com.example.cryptotracker.presentation.add
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -10,13 +10,12 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
-import com.example.cryptotracker.AddCryptoActivity
-import com.example.cryptotracker.MainActivity
+import com.example.cryptotracker.presentation.main.MainActivity
 import com.example.cryptotracker.R
-import com.example.cryptotracker.model.CryptoModel
-import com.example.cryptotracker.utils.Constants
-import com.example.cryptotracker.utils.getTwoDigitsDouble
-import com.example.cryptotracker.utils.inflate
+import com.example.cryptotracker.domain.model.CryptoCurrency
+import com.example.cryptotracker.presentation.Constants
+import com.example.cryptotracker.presentation.getTwoDigitsDouble
+import com.example.cryptotracker.presentation.inflate
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.crypto_layout.view.*
 import java.math.BigDecimal
@@ -24,12 +23,13 @@ import java.math.RoundingMode
 import java.util.*
 
 
-class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.Adapter<AddCryptoAdapter.CryptoViewHolder>(), Filterable {
-    private var cryptoCoins: List<CryptoModel> = Collections.emptyList()
-    private var filteredCryptoCoins: List<CryptoModel> = Collections.emptyList()
+internal class Adapter(private val activity: AddCryptoActivity) : RecyclerView.Adapter<Adapter.CryptoViewHolder>(), Filterable {
+    private var cryptoCoins: List<ViewModel.CryptoCurrencyViewData> = Collections.emptyList()
+    private var filteredCryptoCoins: List<ViewModel.CryptoCurrencyViewData> = Collections.emptyList()
     private var cryptoQuantity: Float = 0.0f
     private var investment: Double = 0.0
     private var actualInvestment: Double = 0.0
+
     init {
         filteredCryptoCoins = cryptoCoins
     }
@@ -45,7 +45,7 @@ class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.A
                 if (charSearch.isEmpty()) {
                     filteredCryptoCoins = cryptoCoins
                 } else {
-                    val resultList = ArrayList<CryptoModel>()
+                    val resultList = ArrayList<ViewModel.CryptoCurrencyViewData>()
                     for (row in cryptoCoins) {
                         if (row.name.toLowerCase(Locale.ROOT).contains(charSearch.toLowerCase(Locale.ROOT))) {
                             resultList.add(row)
@@ -60,7 +60,7 @@ class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.A
 
             @Suppress("UNCHECKED_CAST")
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                filteredCryptoCoins = results?.values as ArrayList<CryptoModel>
+                filteredCryptoCoins = results?.values as ArrayList<ViewModel.CryptoCurrencyViewData>
                 notifyDataSetChanged()
             }
 
@@ -142,7 +142,7 @@ class AddCryptoAdapter(private val activity: AddCryptoActivity) : RecyclerView.A
         var coinIcon = view.coinIcon
     }
 
-    fun updateData(cryptoCoins: List<CryptoModel>) {
+    fun updateData(cryptoCoins: List<ViewModel.CryptoCurrencyViewData>) {
         this.cryptoCoins = cryptoCoins
         this.filteredCryptoCoins = cryptoCoins
         notifyDataSetChanged()

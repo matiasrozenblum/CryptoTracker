@@ -1,12 +1,12 @@
-package com.example.cryptotracker.model
+package com.example.cryptotracker.domain.model
 
 import com.google.gson.annotations.SerializedName
 
-data class CryptoModel(
-        val id: String,
-        val name: String,
-        val symbol: String,
-        val quote: Quote
+data class CryptoCurrency(
+    val id: String,
+    val name: String,
+    val symbol: String,
+    val quote: Quote
 )
 
 data class Quote(
@@ -21,9 +21,9 @@ data class Usd(
 )
 
 data class Body(
-    val data: Map<String,CryptoModel>
+    val data: Map<String, CryptoCurrency>
 )
 
 data class DataList(
-        val data: List<CryptoModel>
+    val data: List<CryptoCurrency>
 )

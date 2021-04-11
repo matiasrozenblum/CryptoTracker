@@ -1,4 +1,4 @@
-package com.example.cryptotracker.adapter
+package com.example.cryptotracker.presentation.main
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -13,12 +13,11 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.content.edit
 import androidx.recyclerview.widget.RecyclerView
-import com.example.cryptotracker.MainActivity
 import com.example.cryptotracker.R
-import com.example.cryptotracker.model.CryptoModel
-import com.example.cryptotracker.utils.Constants
-import com.example.cryptotracker.utils.getTwoDigitsDouble
-import com.example.cryptotracker.utils.inflate
+import com.example.cryptotracker.domain.model.CryptoCurrency
+import com.example.cryptotracker.presentation.Constants
+import com.example.cryptotracker.presentation.getTwoDigitsDouble
+import com.example.cryptotracker.presentation.inflate
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.crypto_layout.view.*
 import java.math.BigDecimal
@@ -26,8 +25,8 @@ import java.math.RoundingMode
 import java.util.*
 
 
-class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<CryptoAdapter.CryptoViewHolder>() {
-    private var cryptoCoins: List<CryptoModel> = Collections.emptyList()
+internal class Adapter(private val activity: MainActivity) : RecyclerView.Adapter<Adapter.CryptoViewHolder>() {
+    private var cryptoCoins: List<ViewModel.CryptoCurrencyViewData> = Collections.emptyList()
     private var cryptoQuantity: Float = 0.0f
     private var investment: Double = 0.0
     private var actualInvestment: Double = 0.0
@@ -169,11 +168,7 @@ class CryptoAdapter(private val activity: MainActivity) : RecyclerView.Adapter<C
         var dollarSign = view.dollarSign3
     }
 
-    fun updateData(cryptoCoins: Map<String,CryptoModel>) {
-        updateData(cryptoCoins.mapNotNull { it.value })
-    }
-
-    private fun updateData(cryptoCoins: List<CryptoModel>) {
+    fun updateData(cryptoCoins: List<ViewModel.CryptoCurrencyViewData>) {
         this.cryptoCoins = cryptoCoins
         notifyDataSetChanged()
     }
