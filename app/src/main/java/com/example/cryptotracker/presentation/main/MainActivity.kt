@@ -15,7 +15,7 @@ import com.example.cryptotracker.presentation.add.AddCryptoActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : AppCompatActivity() {
+internal class MainActivity : AppCompatActivity(), CryptoUpdatesListener {
 
     private lateinit var adapter: Adapter
     var dollarPrice = 0.0
@@ -45,6 +45,14 @@ class MainActivity : AppCompatActivity() {
         val checkable: MenuItem = menu.findItem(R.id.currency)
         updateSwitch(checkable)
         return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun update(cryptoCurrencyViewData: ViewModel.CryptoCurrencyViewData, investmentData: CryptoUpdatesListener.InvestmentData) {
+
+    }
+
+    override fun delete(cryptoCurrencyViewData: ViewModel.CryptoCurrencyViewData) {
+
     }
 
     private fun configureViews() {

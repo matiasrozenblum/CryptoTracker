@@ -1,6 +1,7 @@
 package com.example.cryptotracker.infrastructure.repository
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.example.cryptotracker.domain.model.CryptoName
 import com.example.cryptotracker.domain.repository.CryptoRepository
 
@@ -12,6 +13,15 @@ internal class SharedPreferencesCryptoRepository(
         val names = sharedPreferences.getStringSet(CRYPTO_NAMES_KEY, DEFAULT_NAME_VALUES) ?: setOf()
 
         return names.mapTo(HashSet()) { CryptoName(it) }
+    }
+
+    override fun addNew(name: CryptoName) {
+        val allNames = findNames().toMutableSet()
+        allNames.add(name)
+
+        sharedPreferences.edit {
+            putStringSet(CRYPTO_NAMES_KEY, allNames.mapTo(HashSet()){it.value})
+        }
     }
 
     private companion object {

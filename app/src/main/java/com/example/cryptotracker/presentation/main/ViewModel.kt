@@ -15,11 +15,11 @@ import com.example.cryptotracker.domain.model.Quote
 import kotlinx.coroutines.launch
 
 internal class ViewModel(
-    private val getTouristDollarPrice: GetTouristDollarPrice,
-    private val getSelectedCurrencies: GetSelectedCurrencies,
-    private val selectCurrencyType: SelectCurrencyType,
-    private val getCurrencyTypeSelected: GetCurrencyTypeSelected
-): ViewModel() {
+        private val getTouristDollarPrice: GetTouristDollarPrice,
+        private val getSelectedCurrencies: GetSelectedCurrencies,
+        private val selectCurrencyType: SelectCurrencyType,
+        private val getCurrencyTypeSelected: GetCurrencyTypeSelected
+) : ViewModel() {
 
     val currencies = MutableLiveData<List<CryptoCurrencyViewData>>()
     val dollarPrice = MutableLiveData<Double>()
@@ -49,19 +49,26 @@ internal class ViewModel(
     }
 
     private fun mapToViewData(currencies: List<CryptoCurrency>) =
-        currencies.map {
-            CryptoCurrencyViewData(
-                it.id,
-                it.name,
-                it.symbol,
-                it.quote
-            )
-        }
+            currencies.map {
+                CryptoCurrencyViewData(
+                        it.id,
+                        it.name,
+                        it.symbol,
+                        it.quote
+                )
+            }
+
+
+    data class InvestmentCryptoViewData(
+            val crypto: CryptoCurrencyViewData,
+            val initialInvestment: Long,
+            val actualInvestment: Float
+    )
 
     data class CryptoCurrencyViewData(
-        val id: String,
-        val name: String,
-        val symbol: String,
-        val quote: Quote
+            val id: String,
+            val name: String,
+            val symbol: String,
+            val quote: Quote
     )
 }

@@ -16,4 +16,8 @@ object ActionFactory {
 
     fun createSelectCurrencyType(context: Context) = SelectCurrencyType(Repositories.createCurrencyTypeRepository(context))
 
+    fun createAddNewCurrency(context: Context) = AddNewCurrency(Repositories.createCryptoRepository(context))
+
+    fun createNewInvestment(context: Context) = AddNewInvestment(Repositories.createInvestmentRepository(context))
+
 }

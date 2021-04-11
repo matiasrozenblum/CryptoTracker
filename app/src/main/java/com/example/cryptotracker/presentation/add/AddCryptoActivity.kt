@@ -1,5 +1,6 @@
 package com.example.cryptotracker.presentation.add
 
+import android.content.Context
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -15,11 +16,11 @@ import com.example.cryptotracker.infrastructure.api.CryptoCurrencyApi
 import kotlinx.android.synthetic.main.activity_main.cryptoRecyclerView
 
 
-class AddCryptoActivity : AppCompatActivity() {
+internal class AddCryptoActivity : AppCompatActivity(), NewCryptoListener {
 
     private lateinit var adapter: Adapter
 
-    private val viewModel by viewModels<ViewModel> { ViewModelFactory() }
+    private val viewModel by viewModels<ViewModel> { ViewModelFactory(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +38,11 @@ class AddCryptoActivity : AppCompatActivity() {
         val searchViewItem: MenuItem = menu.findItem(R.id.cryptoSearch)
         configureSearch(searchViewItem)
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onNewCryptoAdded(crypto: ViewModel.CryptoCurrencyViewData, investmentData: NewCryptoListener.InvestmentData) {
+        viewModel.addNewCrypto(crypto, investmentData.investment, investmentData.cryptoQuantity)
+        finish()
     }
 
     private fun configureViews() {

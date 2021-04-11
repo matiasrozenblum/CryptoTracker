@@ -3,6 +3,7 @@ package com.example.cryptotracker.infrastructure.factory
 import android.content.Context
 import com.example.cryptotracker.infrastructure.repository.SharedPreferencesCryptoRepository
 import com.example.cryptotracker.infrastructure.repository.SharedPreferencesCurrencyTypeRepository
+import com.example.cryptotracker.infrastructure.repository.SharedPreferencesInvestmentRepository
 
 internal object Repositories {
 
@@ -13,6 +14,9 @@ internal object Repositories {
 
     fun createCryptoRepository(context: Context) =
         SharedPreferencesCryptoRepository(createSharedPreferences(context))
+
+    fun createInvestmentRepository(context: Context) =
+            SharedPreferencesInvestmentRepository(createSharedPreferences(context))
 
     private fun createSharedPreferences(applicationContext: Context) =
         applicationContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
